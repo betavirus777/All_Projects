@@ -1,0 +1,32 @@
+<?php
+
+    // configuration
+    require_once realpath($_SERVER["DOCUMENT_ROOT"]).'/include/helpers.php';
+    
+    if(empty($_SESSION["id"]))
+    {
+        redirect("/public/login.php");
+    }
+    $id = $_SESSION["id"];
+    
+    $rows = DB::query("SELECT * FROM portfolios WHERE user_id = %i", $id);
+    $cash = DB::queryFirstField("SELECT cash FROM users WHERE id = %i", $id);
+
+    $positions = [];
+    foreach ($rows as $row)
+    {
+        $stock = lookup($row["symbol"]);
+        if ($stock !== false)
+        {
+            $positions[] = [
+            "name" => $stock["name"],
+            "price" => $stock["price"],
+            "shares" => $row["shares"],
+            "symbol" => $row["symbol"]
+            ];
+        }
+    }
+
+    render("portfolio.php", ["title" => "Portfolio", "positions" => $positions, "cash" => $cash]);
+
+?>
